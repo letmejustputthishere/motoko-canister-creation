@@ -13,13 +13,13 @@ persistent actor Main {
     return Principal.fromActor(canister);
   };
 
-  public func createCanisterManually(cycles : Nat) : async Principal {
-    let canisterId = await createCanisterWithCycles(cycles);
+  public shared ({ caller }) func createCanisterManually(cycles : Nat) : async Principal {
+    let canisterId = await createCanisterWithCycles(caller, cycles);
     await installCode(canisterId);
     return canisterId;
   };
 
-  public shared ({ caller }) func createCanisterWithCycles(cycles : Nat) : async Principal {
+  public func createCanisterWithCycles(caller : Principal, cycles : Nat) : async Principal {
     let _result = await (with cycles) Management.create_canister({
       sender_canister_version = null;
       settings = ?{
