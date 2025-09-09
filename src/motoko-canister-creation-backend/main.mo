@@ -18,6 +18,12 @@ persistent actor Main {
     return Principal.fromActor(canister);
   };
 
+  public shared ({ caller }) func createCanisterAndInstallActorClass(cycles : Nat) : async Principal {
+    let canisterId = await createCanisterWithCycles(caller, cycles);
+    let canister = await (system Child.Child)(#install canisterId)();
+    return Principal.fromActor(canister);
+  };
+
   public shared ({ caller }) func createCanisterManually(cycles : Nat) : async Principal {
     let canisterId = await createCanisterWithCycles(caller, cycles);
     await installCode(canisterId);
@@ -50,7 +56,7 @@ persistent actor Main {
     });
   };
 
-  public func createCanisterWithCycles(caller : Principal, cycles : Nat) : async Principal {
+  func createCanisterWithCycles(caller : Principal, cycles : Nat) : async Principal {
     let _result = await (with cycles) Management.create_canister({
       sender_canister_version = null;
       settings = ?{
@@ -67,7 +73,7 @@ persistent actor Main {
     return _result.canister_id;
   };
 
-  public func installCode(canisterId : Principal) : async () {
+  func installCode(canisterId : Principal) : async () {
     await Management.install_code({
       canister_id = canisterId;
       mode = #install;
