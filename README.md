@@ -1,59 +1,177 @@
-# `motoko-canister-creation`
+# Motoko Canister Creation Examples
 
-Welcome to your new `motoko-canister-creation` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
+This project demonstrates various approaches to creating and managing canisters on the Internet Computer using Motoko. It showcases the differences between high-level actor class management and low-level management canister operations.
 
-To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
+## Overview
 
-To learn more before you start working with `motoko-canister-creation`, see the following documentation available online:
+The example includes implementations of:
 
-- [Quick Start](https://internetcomputer.org/docs/current/developer-docs/setup/deploy-locally)
-- [SDK Developer Tools](https://internetcomputer.org/docs/current/developer-docs/setup/install)
-- [Motoko Programming Language Guide](https://internetcomputer.org/docs/current/motoko/main/motoko)
-- [Motoko Language Quick Reference](https://internetcomputer.org/docs/current/motoko/main/language-manual)
+- **Actor Class Management**: High-level canister creation using the `system` keyword
+- **Manual Canister Management**: Low-level creation using the management canister directly
+- **Canister Lifecycle Operations**: Upgrade and reinstall operations
 
-If you want to start working on your project right away, you might want to try the following commands:
+## Key Differences
 
-```bash
-cd motoko-canister-creation/
-dfx help
-dfx canister --help
+### Actor Class Management (High-level)
+- Simpler API with automatic WASM installation
+- Limited canister settings: `controllers`, `compute_allocation`, `memory_allocation`, `freezing_threshold`
+- Good for most common use cases
+- [Documentation](https://internetcomputer.org/docs/motoko/language-manual#actor-class-management)
+
+### Management Canister (Low-level)
+- Full control over canister creation and settings
+- Access to all settings: `reserved_cycles_limit`, `wasm_memory_limit`, `log_visibility`, `wasm_memory_threshold`
+- Requires separate steps for creation and code installation
+- [Documentation](https://internetcomputer.org/docs/references/ic-interface-spec#ic-create_canister)
+
+## Prerequisites
+
+- [DFX](https://internetcomputer.org/docs/current/developer-docs/setup/install) 0.29.0 or later
+- [Mops](https://mops.one/) package manager
+
+## Project Structure
+
+```
+├── src/
+│   └── backend/
+│       ├── Main.mo           # Main actor with canister creation examples
+│       ├── Child.mo          # Simple actor class for demonstrations
+│       └── AnotherChild.mo   # Alternative actor class for upgrades
+├── dfx.json                  # DFX configuration
+├── mops.toml                 # Mops package configuration
+└── README.md                 # This file
 ```
 
-## Running the project locally
+## Getting Started
 
-If you want to test your project locally, you can use the following commands:
+### 1. Start the local Internet Computer
 
 ```bash
-# Starts the replica, running in the background
 dfx start --background
+```
 
-# Deploys your canisters to the replica and generates your candid interface
+### 2. Deploy the canister
+
+```bash
 dfx deploy
 ```
 
-Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.
+This will deploy the main canister that contains all the canister creation examples.
 
-If you have made changes to your backend canister, you can generate a new candid interface with
+## Available Functions
 
-```bash
-npm run generate
-```
+### 1. Actor Class Creation (High-level)
 
-at any time. This is recommended before starting the frontend development server, and will be run automatically any time you run `dfx deploy`.
-
-If you are making frontend changes, you can start a development server with
+#### `newActorClass(cycles: Nat)`
+Creates a new canister using actor class with automatic installation.
 
 ```bash
-npm start
+# Create a canister with 2 trillion cycles
+dfx canister call backend newActorClass '(2_000_000_000_000)'
 ```
 
-Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
+#### `installActorClass(cycles: Nat)`
+Creates a canister and installs an actor class using a two-step process.
 
-### Note on frontend environment variables
+```bash
+# Create and install actor class with 2 trillion cycles
+dfx canister call backend installActorClass '(2_000_000_000_000)'
+```
 
-If you are hosting frontend code somewhere without using DFX, you may need to make one of the following adjustments to ensure your project does not fetch the root key in production:
+### 2. Canister Lifecycle Management
 
-- set`DFX_NETWORK` to `ic` if you are using Webpack
-- use your own preferred method to replace `process.env.DFX_NETWORK` in the autogenerated declarations
-  - Setting `canisters -> {asset_canister_id} -> declarations -> env_override to a string` in `dfx.json` will replace `process.env.DFX_NETWORK` with the string in the autogenerated declarations
-- Write your own `createActor` constructor
+#### `upgradeActorClass(canisterId: Principal)`
+Upgrades an existing canister to use a different actor class (preserves state).
+
+```bash
+# Upgrade a canister (replace with actual canister ID)
+dfx canister call backend upgradeActorClass '(principal "rdmx6-jaaaa-aaaaa-aaadq-cai")'
+```
+
+#### `reinstallActorClass(canisterId: Principal)`
+Reinstalls an existing canister with a different actor class (destroys state).
+
+```bash
+# Reinstall a canister (replace with actual canister ID)
+dfx canister call backend reinstallActorClass '(principal "rdmx6-jaaaa-aaaaa-aaadq-cai")'
+```
+
+### 3. Manual Canister Management (Low-level)
+
+#### `createAndInstallCanisterManually(cycles: Nat)`
+Creates a canister manually using the management canister with full control over settings.
+
+```bash
+# Create canister manually with advanced settings
+dfx canister call backend createAndInstallCanisterManually '(2_000_000_000_000)'
+```
+
+## Example Workflow
+
+Here's a complete example demonstrating the different approaches:
+
+```bash
+# 1. Start local replica
+dfx start --background --clean
+
+# 2. Deploy the main canister
+dfx deploy --with-cycles 30000000000000
+
+# 3. Create a canister using actor class (high-level)
+CANISTER1=$(dfx canister call backend newActorClass '(2_000_000_000_000)' | grep -o 'principal "[^"]*"' | cut -d'"' -f2)
+echo "Created canister via actor class: $CANISTER1"
+
+# 4. Create a canister using manual management (low-level)
+CANISTER2=$(dfx canister call backend createAndInstallCanisterManually '(2_000_000_000_000)' | grep -o 'principal "[^"]*"' | cut -d'"' -f2)
+echo "Created canister manually: $CANISTER2"
+
+# 5. Create canister with two-step process
+CANISTER3=$(dfx canister call backend installActorClass '(2_000_000_000_000)' | grep -o 'principal "[^"]*"' | cut -d'"' -f2)
+echo "Created canister with install process: $CANISTER3"
+
+# 6. Upgrade the first canister
+dfx canister call backend upgradeActorClass "(principal \"$CANISTER1\")"
+echo "Upgraded canister: $CANISTER1"
+
+# 7. Reinstall the third canister
+dfx canister call backend reinstallActorClass "(principal \"$CANISTER3\")"
+echo "Reinstalled canister: $CANISTER3"
+```
+
+## Understanding the Code
+
+### Actor Classes
+- `Child.mo`: A simple persistent actor class used for initial installations
+- `AnotherChild.mo`: An alternative actor class used for upgrade/reinstall demonstrations
+
+### Main Functions
+- **High-level functions** use Motoko's `system` keyword with actor classes
+- **Low-level functions** interact directly with the management canister
+- **Lifecycle functions** demonstrate upgrade and reinstall capabilities
+
+## Cycles Management
+
+All functions require cycles to create canisters. The examples use 2 trillion cycles (2_000_000_000_000), which is sufficient for most development purposes. In production, you'll want to calculate appropriate cycle amounts based on your canister's needs.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Insufficient cycles**: Increase the cycle amount in function calls
+2. **Invalid canister ID**: Ensure you're using the correct Principal format
+3. **Deploy failures**: Check that dfx is running and properly configured
+
+### Getting Help
+
+- [Internet Computer Documentation](https://internetcomputer.org/docs)
+- [Motoko Documentation](https://internetcomputer.org/docs/motoko)
+- [DFX Command Reference](https://internetcomputer.org/docs/building-apps/developer-tools/dfx/)
+- [Developer Forum](https://forum.dfinity.org/)
+
+## Related Examples
+
+For more Motoko examples, visit the [official examples repository](https://github.com/dfinity/examples/tree/master/motoko).
+
+## License
+
+This project is licensed under the Apache 2.0 license. See LICENSE for more details.

@@ -1,7 +1,7 @@
 {
   "canisters": {
-    "motoko-canister-creation-backend": {
-      "main": "src/motoko-canister-creation-backend/main.mo",
+    "backend": {
+      "main": "src/backend/Main.mo",
       "type": "motoko"
     }
   },
