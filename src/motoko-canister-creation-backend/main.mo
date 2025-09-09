@@ -4,7 +4,7 @@ import Debug "mo:core/Debug";
 import Management "ic:aaaaa-aa";
 import Prim "mo:⛔";
 
-persistent actor Main {
+actor Main {
 
   public func createCanisterWithPrim(cycles : Nat) : async Principal {
     await (with cycles) Prim.createActor("\00\61\73\6d\01\00\00\00", "");
