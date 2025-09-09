@@ -1,3 +1,5 @@
 {
-  "motoko-canister-creation-backend": {}
+  "motoko-canister-creation-backend": {
+    "ic": "o4ccx-xyaaa-aaaal-asmca-cai"
+  }
 }
